@@ -1,6 +1,6 @@
 export default function Home() {
     return (
-        <section className="relative flex items-start justify-center flex-grow bg-blue-900 pt-10 overflow-hidden">
+        <section className="relative flex items-start justify-center min-h-screen flex-grow bg-blue-900 pt-10 overflow-hidden">
             <div className="absolute inset-0 pointer-events-none">
                 {["+", "-", "÷", "×", "=", "∑", "∫", "π", "∞"].map((symbol, index) => (
                     <span
