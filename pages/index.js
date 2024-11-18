@@ -1,7 +1,25 @@
 export default function Home() {
     return (
-        <section className="flex items-start justify-center flex-grow bg-blue-900 pt-10">
-            <div className="text-center space-y-6">
+        <section className="relative flex items-start justify-center flex-grow bg-blue-900 pt-10 overflow-hidden">
+            <div className="absolute inset-0 pointer-events-none">
+                {["+", "-", "÷", "×", "=", "∑", "∫", "π", "∞"].map((symbol, index) => (
+                    <span
+                        key={index}
+                        className={`absolute text-white text-5xl font-bold animate-bounce`}
+                        style={{
+                            top: `${Math.random() * 100}%`,
+                            left: `${Math.random() * 100}%`,
+                            animationDelay: `${Math.random() * 3}s`,
+                            animationDuration: `${3 + Math.random() * 2}s`,
+                        }}
+                    >
+                        {symbol}
+                    </span>
+                ))}
+            </div>
+
+            {/* Content */}
+            <div className="text-center space-y-6 z-10">
                 {/* Top Half */}
                 <div className="flex justify-center space-x-2">
                     {["A", "M", "E", "R"].map((letter) => (
@@ -26,11 +44,6 @@ export default function Home() {
                         </h1>
                     ))}
                 </div>
-            </div>
-
-            {/* Additional Content */}
-            <div className="flex items-center justify-center min-h-screen bg-gray-100">
-                <div className="w-20 h-20 bg-blue-800 rounded-full"></div>
             </div>
         </section>
     );

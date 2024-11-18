@@ -23,10 +23,12 @@ export default function Header() {
                     </div>
 
                     <div className="relative">
-                        <h1 className="absolute text-lg font-cursive text-white font-bold transform -translate-y-3 -translate-x-2 mt-2">
-                            Amer
+                        <h1 className="absolute text-lg text-white font-bold transform -translate-y-3 -translate-x-2 mt-2">
+                            <span className="">Amer</span>
                         </h1>
-                        <h1 className="text-lg font-bold font-cursive mt-2.5">Ammari</h1>
+                        <h1 className="text-lg font-bold mt-2.5">
+                            <span className="">Ammari</span>
+                        </h1>
                     </div>
                 </div>
 
