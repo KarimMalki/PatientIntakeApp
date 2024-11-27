@@ -6,19 +6,6 @@
         "use": "@vercel/node"
       }
     ],
-    "routes": [
-      {
-        "handle": "filesystem"
-      },
-      {
-        "src": "/api/(.*)",
-        "dest": "/api/$1"
-      },
-      {
-        "src": "/(.*)",
-        "dest": "/index.html"
-      }
-    ],
     "rewrites": [
       {
         "source": "/(.*)",
@@ -46,6 +33,8 @@
           }
         ]
       }
-    ]
+    ],
+    "cleanUrls": true,
+    "trailingSlash": false
   }
   
