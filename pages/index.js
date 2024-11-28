@@ -66,80 +66,32 @@ export default function Home() {
                             transition={{ duration: 0.5, delay: 0.2 }}
                         >
                             <div className="relative bg-gradient-to-br from-blue-100 to-blue-50 p-8 rounded-2xl shadow-2xl">
-                                <motion.div 
+                                <motion.div
                                     className="absolute top-0 right-0 w-32 h-32 bg-blue-200 rounded-full opacity-50 -mr-16 -mt-16"
-                                    animate={{ 
+                                    animate={{
                                         scale: [1, 1.2, 1],
-                                        rotate: [0, 90, 0] 
+                                        rotate: [0, 90, 0]
                                     }}
-                                    transition={{ 
+                                    transition={{
                                         duration: 20,
                                         repeat: Infinity,
                                         ease: "linear"
                                     }}
                                 />
-                                <motion.div 
+                                <motion.div
                                     className="absolute bottom-0 left-0 w-24 h-24 bg-green-200 rounded-full opacity-50 -ml-12 -mb-12"
-                                    animate={{ 
+                                    animate={{
                                         scale: [1, 1.3, 1],
                                         rotate: [0, -90, 0]
                                     }}
-                                    transition={{ 
+                                    transition={{
                                         duration: 15,
                                         repeat: Infinity,
                                         ease: "linear"
                                     }}
                                 />
-                                
-                                <div className="relative space-y-6">
-                                    <motion.div 
-                                        className="bg-white p-6 rounded-xl shadow-md"
-                                        variants={cardHover}
-                                        whileHover="hover"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div className="bg-green-100 p-3 rounded-full">
-                                                <FaCalendarAlt className="text-green-600 text-xl" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm text-gray-500">Demo Features</p>
-                                                <p className="font-semibold text-gray-900">Appointment Booking</p>
-                                            </div>
-                                        </div>
-                                    </motion.div>
 
-                                    <motion.div 
-                                        className="bg-white p-6 rounded-xl shadow-md"
-                                        variants={cardHover}
-                                        whileHover="hover"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div className="bg-blue-100 p-3 rounded-full">
-                                                <FaUserMd className="text-blue-600 text-xl" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm text-gray-500">Demo Access</p>
-                                                <p className="font-semibold text-gray-900">Multiple User Roles</p>
-                                            </div>
-                                        </div>
-                                    </motion.div>
 
-                                    <motion.div 
-                                        className="bg-white p-6 rounded-xl shadow-md"
-                                        variants={cardHover}
-                                        whileHover="hover"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div className="bg-purple-100 p-3 rounded-full">
-                                                <FaCode className="text-purple-600 text-xl" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm text-gray-500">Try It Out</p>
-                                                <p className="font-semibold text-gray-900">Sample Data Included</p>
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                </div>
                             </div>
                         </motion.div>
                     </motion.div>

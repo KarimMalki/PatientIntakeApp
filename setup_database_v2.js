@@ -31,7 +31,9 @@ const setupDatabase = () => {
                 insurance_id TEXT,
                 last_visit DATE,
                 status TEXT DEFAULT 'Active',
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                primary_doctor_id INTEGER,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (primary_doctor_id) REFERENCES Doctors(id)
             )`, (err) => {
                 if (err) console.error('Error creating Patients table:', err);
             });
@@ -191,8 +193,8 @@ const setupDatabase = () => {
 
             const insertPatient = db.prepare(`
                 INSERT OR IGNORE INTO Patients 
-                (name, email, phone, date_of_birth, address, insurance_provider, insurance_id, last_visit) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (name, email, phone, date_of_birth, address, insurance_provider, insurance_id, last_visit, primary_doctor_id) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
             `);
 
             patients.forEach(patient => {

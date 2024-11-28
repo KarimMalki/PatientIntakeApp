@@ -39,16 +39,29 @@ export default function PatientSignup() {
         setIsSubmitting(true);
         
         try {
-            const randomDoctor = doctors[Math.floor(Math.random() * doctors.length)];
-            const appointmentData = { ...patientData, doctorId: randomDoctor?.id };
-            console.log('Patient Data:', appointmentData);
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            setIsSubmitting(false);
-            // Show success message or redirect
+            const response = await fetch('/api/patients/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(patientData),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Registration failed');
+            }
+
+            const data = await response.json();
+            console.log('Registration successful:', data);
+            
+            // Redirect to patient dashboard
+            window.location.href = `/patientdashboard?id=${data.patientId}`;
         } catch (error) {
+            console.error('Registration error:', error);
+            alert(error.message || 'Failed to register. Please try again.');
+        } finally {
             setIsSubmitting(false);
-            console.error('Error:', error);
         }
     };
 
@@ -70,7 +83,7 @@ export default function PatientSignup() {
                                     onChange={handleChange}
                                     placeholder="Full Name"
                                     required
-                                    className="pl-10 w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                                    className="pl-10 w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-black"
                                 />
                             </div>
                             <div className="relative">
@@ -84,7 +97,7 @@ export default function PatientSignup() {
                                     onChange={handleChange}
                                     placeholder="Email Address"
                                     required
-                                    className="pl-10 w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                                    className="pl-10 w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-black"
                                 />
                             </div>
                             <div className="relative">
@@ -98,7 +111,7 @@ export default function PatientSignup() {
                                     onChange={handleChange}
                                     placeholder="Phone Number"
                                     required
-                                    className="pl-10 w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                                    className="pl-10 w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-black"
                                 />
                             </div>
                             <div className="relative">
@@ -106,12 +119,17 @@ export default function PatientSignup() {
                                     <FaCalendarAlt className="text-gray-400" />
                                 </div>
                                 <input
-                                    type="date"
+                                    type="text"
+                                    onFocus={(e) => e.target.type = 'date'}
+                                    onBlur={(e) => {
+                                        if (!e.target.value) e.target.type = 'text'
+                                    }}
                                     name="date_of_birth"
                                     value={patientData.date_of_birth}
                                     onChange={handleChange}
+                                    placeholder="Date of Birth"
                                     required
-                                    className="pl-10 w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                                    className="pl-10 w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-black"
                                 />
                             </div>
                         </div>
@@ -132,7 +150,7 @@ export default function PatientSignup() {
                                     value={patientData.address}
                                     onChange={handleChange}
                                     placeholder="Address"
-                                    className="pl-10 w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                                    className="pl-10 w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-black"
                                 />
                             </div>
                             <div className="relative">
@@ -145,7 +163,7 @@ export default function PatientSignup() {
                                     value={patientData.insurance_provider}
                                     onChange={handleChange}
                                     placeholder="Insurance Provider"
-                                    className="pl-10 w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                                    className="pl-10 w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-black"
                                 />
                             </div>
                             <div className="relative">
@@ -158,7 +176,7 @@ export default function PatientSignup() {
                                     value={patientData.insurance_number}
                                     onChange={handleChange}
                                     placeholder="Insurance Number"
-                                    className="pl-10 w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                                    className="pl-10 w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-black"
                                 />
                             </div>
                             <div>
@@ -173,7 +191,7 @@ export default function PatientSignup() {
                                             onChange={handleChange}
                                             className="form-radio h-4 w-4 text-blue-600"
                                         />
-                                        <span className="ml-2">Email</span>
+                                        <span className="ml-2 text-black ">Email</span>
                                     </label>
                                     <label className="flex items-center">
                                         <input
@@ -184,7 +202,7 @@ export default function PatientSignup() {
                                             onChange={handleChange}
                                             className="form-radio h-4 w-4 text-blue-600"
                                         />
-                                        <span className="ml-2">Phone</span>
+                                        <span className="ml-2 text-black ">Phone</span>
                                     </label>
                                     <label className="flex items-center">
                                         <input
@@ -195,7 +213,7 @@ export default function PatientSignup() {
                                             onChange={handleChange}
                                             className="form-radio h-4 w-4 text-blue-600"
                                         />
-                                        <span className="ml-2">Text</span>
+                                        <span className="ml-2 text-black ">Text</span>
                                     </label>
                                 </div>
                             </div>
@@ -215,7 +233,7 @@ export default function PatientSignup() {
                                     value={patientData.emergency_contact}
                                     onChange={handleChange}
                                     placeholder="Name and Phone Number"
-                                    className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                                    className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-black"
                                 />
                             </div>
                             <div>
@@ -226,7 +244,7 @@ export default function PatientSignup() {
                                     onChange={handleChange}
                                     placeholder="Please list any medical conditions, allergies, or medications"
                                     rows="4"
-                                    className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                                    className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-black"
                                 ></textarea>
                             </div>
                         </div>
@@ -270,38 +288,37 @@ export default function PatientSignup() {
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <div>
                 {renderStep()}
                 
                 <div className="mt-8 flex justify-between">
-                    {step > 1 && (
-                        <button
-                            type="button"
-                            onClick={() => setStep(step - 1)}
-                            className="bg-gray-100 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors"
-                        >
-                            Previous
-                        </button>
-                    )}
-                    {step < 3 ? (
-                        <button
-                            type="button"
-                            onClick={() => setStep(step + 1)}
-                            className="ml-auto bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                            Next
-                        </button>
-                    ) : (
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="ml-auto bg-blue-600 text-white px-8 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isSubmitting ? 'Submitting...' : 'Complete Registration'}
-                        </button>
-                    )}
+                {step < 3 ? (
+    <button
+        type="button"
+        onClick={() => {
+            console.log('Next button clicked. Current step:', step);
+            setStep(step + 1);
+        }}
+        className="ml-auto bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+    >
+        Next
+    </button>
+) : (
+    <form onSubmit={(e) => {
+        console.log('Form submitted on step:', step);
+        handleSubmit(e);
+    }}>
+        <button
+            type="submit"
+            disabled={isSubmitting}
+            className="ml-auto bg-blue-600 text-white px-8 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+            {isSubmitting ? 'Submitting...' : 'Complete Registration'}
+        </button>
+    </form>
+)}
                 </div>
-            </form>
+            </div>
         </div>
     );
 }
