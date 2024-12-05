@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { doctorId, date } = req.query;
+        const { doctorId, startDate, endDate } = req.query;
 
         if (!doctorId) {
             return res.status(400).json({ error: 'Doctor ID is required' });
@@ -19,25 +19,11 @@ export default async function handler(req, res) {
             driver: sqlite3.Database
         });
 
-        // Get doctor's availability for the specified date or current date
-        const queryDate = date || new Date().toISOString().split('T')[0];
-        const dayOfWeek = new Date(queryDate).getDay();
+        // Get start and end dates, default to current date if not provided
+        const queryStartDate = startDate || new Date().toISOString().split('T')[0];
+        const queryEndDate = endDate || queryStartDate;
 
-        const availability = await db.get(`
-            SELECT *
-            FROM DoctorAvailability
-            WHERE doctor_id = ? AND day_of_week = ?
-        `, [doctorId, dayOfWeek]);
-
-        // Check for time off
-        const timeOff = await db.get(`
-            SELECT *
-            FROM DoctorTimeOff
-            WHERE doctor_id = ?
-            AND ? BETWEEN start_date AND end_date
-        `, [doctorId, queryDate]);
-
-        // Get all appointments for the doctor on the specified date
+        // Get all appointments for the doctor within the date range
         const appointments = await db.all(`
             SELECT 
                 a.id,
@@ -58,9 +44,9 @@ export default async function handler(req, res) {
             JOIN Patients p ON a.patient_id = p.id
             LEFT JOIN BillingRecords b ON a.id = b.appointment_id
             WHERE a.doctor_id = ?
-            AND date(a.appointment_date) = date(?)
+            AND date(a.appointment_date) BETWEEN date(?) AND date(?)
             ORDER BY a.appointment_date ASC
-        `, [doctorId, queryDate]);
+        `, [doctorId, queryStartDate, queryEndDate]);
 
         // Format the appointments data
         const formattedAppointments = appointments.map(appointment => ({
@@ -83,7 +69,7 @@ export default async function handler(req, res) {
             cancelled: formattedAppointments.filter(a => a.status === 'Cancelled')
         };
 
-        // Get daily statistics
+        // Get statistics for the date range
         const stats = {
             total_appointments: appointments.length,
             completed_appointments: groupedAppointments.completed.length,
@@ -97,41 +83,76 @@ export default async function handler(req, res) {
             )
         };
 
-        // Get next available slots
-        const availableSlots = [];
-        if (availability && !timeOff) {
-            const startHour = parseInt(availability.start_time.split(':')[0]);
-            const endHour = parseInt(availability.end_time.split(':')[0]);
-            const breakStartHour = availability.break_start ? parseInt(availability.break_start.split(':')[0]) : null;
-            const breakEndHour = availability.break_end ? parseInt(availability.break_end.split(':')[0]) : null;
+        // Get doctor's availability for each day in the range
+        const availabilityByDate = {};
+        let currentDate = new Date(queryStartDate);
+        const endDateObj = new Date(queryEndDate);
 
-            for (let hour = startHour; hour < endHour; hour++) {
-                // Skip break time
-                if (breakStartHour && breakEndHour && hour >= breakStartHour && hour < breakEndHour) {
-                    continue;
-                }
+        while (currentDate <= endDateObj) {
+            const dayOfWeek = currentDate.getDay();
+            const currentDateStr = currentDate.toISOString().split('T')[0];
 
-                // Check both :00 and :30 slots
-                ['00', '30'].forEach(minutes => {
-                    const timeSlot = `${hour.toString().padStart(2, '0')}:${minutes}`;
-                    const existingAppointments = appointments.filter(a => 
-                        new Date(a.appointment_date).toTimeString().startsWith(timeSlot) &&
-                        a.status !== 'Cancelled'
-                    );
+            // Get availability for this day
+            const availability = await db.get(`
+                SELECT *
+                FROM DoctorAvailability
+                WHERE doctor_id = ? AND day_of_week = ?
+            `, [doctorId, dayOfWeek]);
 
-                    if (existingAppointments.length < (availability.max_appointments || 1)) {
-                        availableSlots.push(timeSlot);
+            // Check for time off
+            const timeOff = await db.get(`
+                SELECT *
+                FROM DoctorTimeOff
+                WHERE doctor_id = ?
+                AND ? BETWEEN start_date AND end_date
+            `, [doctorId, currentDateStr]);
+
+            // Calculate available slots for this day
+            const availableSlots = [];
+            if (availability && !timeOff) {
+                const startHour = parseInt(availability.start_time.split(':')[0]);
+                const endHour = parseInt(availability.end_time.split(':')[0]);
+                const breakStartHour = availability.break_start ? parseInt(availability.break_start.split(':')[0]) : null;
+                const breakEndHour = availability.break_end ? parseInt(availability.break_end.split(':')[0]) : null;
+
+                for (let hour = startHour; hour < endHour; hour++) {
+                    // Skip break time
+                    if (breakStartHour && breakEndHour && hour >= breakStartHour && hour < breakEndHour) {
+                        continue;
                     }
-                });
+
+                    // Check both :00 and :30 slots
+                    ['00', '30'].forEach(minutes => {
+                        const timeSlot = `${hour.toString().padStart(2, '0')}:${minutes}`;
+                        const existingAppointments = appointments.filter(a => {
+                            const appointmentDate = new Date(a.appointment_date);
+                            return appointmentDate.toISOString().split('T')[0] === currentDateStr &&
+                                   appointmentDate.toTimeString().startsWith(timeSlot) &&
+                                   a.status !== 'Cancelled';
+                        });
+
+                        if (existingAppointments.length < (availability.max_appointments || 1)) {
+                            availableSlots.push(timeSlot);
+                        }
+                    });
+                }
             }
+
+            availabilityByDate[currentDateStr] = {
+                availability: availability || null,
+                timeOff: timeOff || null,
+                availableSlots
+            };
+
+            // Move to next day
+            currentDate.setDate(currentDate.getDate() + 1);
         }
 
         return res.status(200).json({
-            date: queryDate,
-            availability: availability || null,
-            timeOff: timeOff || null,
+            startDate: queryStartDate,
+            endDate: queryEndDate,
             appointments: groupedAppointments,
-            availableSlots,
+            availabilityByDate,
             stats,
             message: 'Doctor schedule retrieved successfully'
         });

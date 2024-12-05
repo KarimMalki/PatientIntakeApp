@@ -167,6 +167,29 @@ const setupDatabase = () => {
             });
             insertDoctor.finalize();
 
+            // Insert doctor availability for Dr. Sarah Wilson (ID: 1)
+            const drWilsonAvailability = [
+                // Monday = 1, Sunday = 0
+                [1, 1, '09:00', '17:00', 1, 8, '12:00', '13:00'], // Monday
+                [1, 2, '09:00', '17:00', 1, 8, '12:00', '13:00'], // Tuesday
+                [1, 3, '09:00', '17:00', 1, 8, '12:00', '13:00'], // Wednesday
+                [1, 4, '09:00', '17:00', 1, 8, '12:00', '13:00'], // Thursday
+                [1, 5, '09:00', '17:00', 1, 8, '12:00', '13:00']  // Friday
+            ];
+
+            const insertAvailability = db.prepare(`
+                INSERT OR IGNORE INTO DoctorAvailability 
+                (doctor_id, day_of_week, start_time, end_time, is_available, max_appointments, break_start, break_end)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `);
+
+            drWilsonAvailability.forEach(day => {
+                insertAvailability.run(day, (err) => {
+                    if (err) console.error('Error inserting doctor availability:', err);
+                });
+            });
+            insertAvailability.finalize();
+
             // Insert sample patients
             const patients = [
                 {

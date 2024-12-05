@@ -46,44 +46,61 @@ export default function AppointmentBooking({ patientId }) {
             if (!selectedDoctor || !appointmentDate) return;
 
             try {
-                const timeSlots = [];
-                // Check availability for each hour from 9 AM to 5 PM
-                for (let hour = 9; hour < 17; hour++) {
-                    const time = `${hour.toString().padStart(2, '0')}:00`;
-                    const response = await fetch('/api/appointments/check-availability', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            doctorId: selectedDoctor,
-                            date: appointmentDate,
-                            time: time
-                        })
-                    });
+                // Get doctor's schedule for the selected date
+                const response = await fetch(`/api/appointments/doctor?doctorId=${selectedDoctor}&startDate=${appointmentDate}&endDate=${appointmentDate}`);
+                const data = await response.json();
+                console.log('Doctor schedule:', data);
 
-                    const data = await response.json();
-                    if (data.available) {
-                        timeSlots.push(time);
-                        // Also add :30 slot if not during break
-                        const halfHourTime = `${hour.toString().padStart(2, '0')}:30`;
-                        const halfHourResponse = await fetch('/api/appointments/check-availability', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                doctorId: selectedDoctor,
-                                date: appointmentDate,
-                                time: halfHourTime
-                            })
-                        });
-                        const halfHourData = await halfHourResponse.json();
-                        if (halfHourData.available) {
-                            timeSlots.push(halfHourTime);
-                        }
+                if (data.availabilityByDate && data.availabilityByDate[appointmentDate]) {
+                    const dayAvailability = data.availabilityByDate[appointmentDate];
+                    
+                    // Get the doctor's availability for the day
+                    const availability = dayAvailability.availability;
+                    if (!availability || !availability.is_available) {
+                        setError('Doctor is not available on this day');
+                        setAvailableTimeSlots([]);
+                        return;
                     }
+
+                    // Generate time slots based on doctor's schedule
+                    const slots = [];
+                    const startHour = parseInt(availability.start_time.split(':')[0]);
+                    const endHour = parseInt(availability.end_time.split(':')[0]);
+                    const breakStartHour = availability.break_start ? parseInt(availability.break_start.split(':')[0]) : null;
+                    const breakEndHour = availability.break_end ? parseInt(availability.break_end.split(':')[0]) : null;
+
+                    // Get existing appointments for the day
+                    const existingAppointments = data.appointments.scheduled || [];
+                    const bookedTimes = new Set(existingAppointments.map(apt => 
+                        new Date(apt.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                    ));
+
+                    // Generate available slots
+                    for (let hour = startHour; hour < endHour; hour++) {
+                        // Skip break time
+                        if (breakStartHour && hour >= breakStartHour && hour < breakEndHour) {
+                            continue;
+                        }
+
+                        // Check both :00 and :30 slots
+                        ['00', '30'].forEach(minutes => {
+                            const timeSlot = `${hour.toString().padStart(2, '0')}:${minutes}`;
+                            if (!bookedTimes.has(timeSlot)) {
+                                slots.push(timeSlot);
+                            }
+                        });
+                    }
+
+                    setAvailableTimeSlots(slots);
+                    setError('');
+                } else {
+                    setAvailableTimeSlots([]);
+                    setError('No availability information found for this date');
                 }
-                setAvailableTimeSlots(timeSlots);
             } catch (error) {
                 console.error('Error checking availability:', error);
                 setError('Failed to check availability. Please try again.');
+                setAvailableTimeSlots([]);
             }
         };
 
@@ -96,23 +113,6 @@ export default function AppointmentBooking({ patientId }) {
         setError('');
 
         try {
-            // Final availability check
-            const availabilityResponse = await fetch('/api/appointments/check-availability', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    doctorId: selectedDoctor,
-                    date: appointmentDate,
-                    time: selectedTime
-                })
-            });
-
-            const availabilityData = await availabilityResponse.json();
-            if (!availabilityData.available) {
-                setError(availabilityData.reason || 'This time slot is no longer available');
-                return;
-            }
-
             // Book the appointment
             const response = await fetch('/api/appointments/book', {
                 method: 'POST',
@@ -270,7 +270,7 @@ export default function AppointmentBooking({ patientId }) {
                             <option value="">Choose a time</option>
                             {availableTimeSlots.map(time => (
                                 <option key={time} value={time}>
-                                    {time.padStart(5, '0')}
+                                    {time}
                                 </option>
                             ))}
                         </select>
@@ -315,4 +315,4 @@ export default function AppointmentBooking({ patientId }) {
             </div>
         </div>
     );
-}
+} 

@@ -4,6 +4,7 @@ import {
     LineChart, Line, PieChart, Pie, BarChart, Bar,
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
+import DentistLayout from '../../components/DentistLayout';
 
 export default function DentistAnalytics() {
     const [timeRange, setTimeRange] = useState('week');
@@ -44,8 +45,8 @@ export default function DentistAnalytics() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-7xl mx-auto">
+        <DentistLayout>
+            <div className="space-y-6">
                 {/* Header */}
                 <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
@@ -53,7 +54,7 @@ export default function DentistAnalytics() {
                         <select
                             value={timeRange}
                             onChange={(e) => setTimeRange(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-4 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="week">This Week</option>
                             <option value="month">This Month</option>
@@ -181,6 +182,6 @@ export default function DentistAnalytics() {
                     </div>
                 </div>
             </div>
-        </div>
+        </DentistLayout>
     );
 }

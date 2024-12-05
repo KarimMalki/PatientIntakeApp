@@ -1,5 +1,4 @@
-    import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import { query } from '../../../utils/db';
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
@@ -7,14 +6,8 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Open database connection
-        const db = await open({
-            filename: './dentist_office.db',
-            driver: sqlite3.Database
-        });
-
         // Get all active patients with their latest appointment and assigned doctor
-        const patients = await db.all(`
+        const patients = await query(`
             SELECT 
                 p.id,
                 p.name,
